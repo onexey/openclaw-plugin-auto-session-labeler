@@ -1,0 +1,26 @@
+{
+  "id": "session-labeler",
+  "name": "Session Labeler",
+  "description": "Automatically applies a short descriptive label to sessions based on the initial user message",
+  "contracts": {},
+  "activation": {
+    "onStartup": true
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "maxLabelLength": {
+        "type": "number",
+        "description": "Maximum character length for generated labels (default: 40)",
+        "default": 40
+      },
+      "skipKinds": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Session kinds to skip labelling (default: [\"cron\", \"hook\"])",
+        "default": ["cron", "hook"]
+      }
+    }
+  }
+}
