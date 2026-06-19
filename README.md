@@ -20,11 +20,21 @@ Sessions that already have a label (set manually or by a prior run) are left alo
 openclaw plugins install git:onexey/openclaw-plugin-auto-session-labeler
 ```
 
-Then enable `allowConversationAccess` for the `agent_end` hook (required by OpenClaw for conversation-level hooks):
+Then apply the required config (all three fields are needed — see [Configuration](#configuration) for details):
 
 ```bash
-echo '{"plugins":{"entries":{"session-labeler":{"hooks":{"allowConversationAccess":true}}}}}' \
-  | openclaw config patch --stdin
+echo '{
+  "plugins": {
+    "allow": ["session-labeler"],
+    "entries": {
+      "session-labeler": {
+        "hooks": {
+          "allowConversationAccess": true
+        }
+      }
+    }
+  }
+}' | openclaw config patch --stdin
 ```
 
 Restart the gateway:
@@ -35,11 +45,21 @@ openclaw gateway restart
 
 ## Configuration
 
-All config is optional. Defaults work out of the box.
+### Required
+
+Two config fields are **required** for the plugin to function:
+
+| Field | Why it's needed |
+|---|---|
+| `plugins.allow` must include `"session-labeler"` | OpenClaw requires non-bundled plugins to be explicitly trusted before elevated hooks are honoured. Without this, `agent_end` fires but is silently ignored. |
+| `plugins.entries.session-labeler.hooks.allowConversationAccess: true` | Required by OpenClaw for any plugin that uses `agent_end` (a conversation-level hook). |
+
+### Optional
 
 ```json
 {
   "plugins": {
+    "allow": ["session-labeler"],
     "entries": {
       "session-labeler": {
         "hooks": {
@@ -73,7 +93,7 @@ This two-hook design avoids relying on undocumented fields of the `agent_end` ev
 
 - Failures are logged (`[session-labeler] label write failed: ...`) but never surface to the user or interrupt a session
 - In-memory tracking resets on gateway restart — the plugin re-checks the stored session label on the next first turn, so sessions already labelled before the restart stay labelled
-- `allowConversationAccess: true` is required by OpenClaw for any plugin using `agent_end`
+- `plugins.allow` and `allowConversationAccess: true` are both required; missing either causes `agent_end` to be silently skipped
 
 ## License
 
